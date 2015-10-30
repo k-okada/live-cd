@@ -1,0 +1,13 @@
+dependencies:
+  pre:
+    - sudo apt-get update -qq
+    - sudo apt-get install -y uck
+general:
+  artifacts:
+    - "tork-ubuntu-ros-14.04-amd64-*.iso"
+test:
+  override:
+    - ./00-create-cd.sh  --rosdistro indigo
+    - ./00-create-cd.sh  --local-repo --rosdistro indigo
+    - export DISPLAY=:0
+    - sudo ./00-check-cd.sh tork-ubuntu-ros-14.04-amd64-*.iso
