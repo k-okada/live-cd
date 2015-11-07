@@ -1,13 +1,23 @@
 dependencies:
   pre:
     - sudo apt-get update -qq
-    - sudo apt-get install -y uck
+    - sudo apt-get install -y coreutils apt aptitude
+    - sudo apt-get install -y ubuntu-defaults-builder
 general:
   artifacts:
-    - "tork-ubuntu-ros-14.04-amd64-*.iso"
+    - "*.iso"
 test:
   override:
-    - ./00-create-cd.sh  --rosdistro indigo
-    - ./00-create-cd.sh  --local-repo --rosdistro indigo
-    - export DISPLAY=:0
-    - sudo ./00-check-cd.sh tork-ubuntu-ros-14.04-amd64-*.iso
+    - ubuntu-defaults-template ubuntu-14.04-desktop-amd64
+    - echo "apt-get update" >> ubuntu-14.04-desktop-amd64/hooks/chroot
+    - echo "apt-get upgrade -y" >> ubuntu-14.04-desktop-amd64/hooks/chroot
+    - echo "apt-get install -y coreutils apt aptitude" >> ubuntu-14.04-desktop-amd64/hooks/chroot
+    - echo "apt-get clean" >> ubuntu-14.04-desktop-amd64/hooks/chroot
+    - echo "mkdir -p /home/ubuntu/catkin_ws" >> ubuntu-14.04-desktop-amd64/hooks/chroot
+    - cat ubuntu-14.04-desktop-amd64/hooks/chroot
+    - cd ubuntu-14.04-desktop-amd64; dpkg-buildpackage -us -uc
+    - sudo sed -i 's@mknod "$1/test-dev-null" c 1 3 || return 1@mknod "$1/test-dev-null" c 1 3 || return 0@' /usr/share/debootstrap/functions
+    - sudo sed -i 's@sh -e@sh -e\nset -x@' /usr/sbin/debootstrap
+    - sudo ubuntu-defaults-image --arch amd64 --release trusty --components main,restricted,universe --package ubuntu-14.04-desktop-amd64_0.1_all.deb
+
+
